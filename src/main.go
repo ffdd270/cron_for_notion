@@ -4,9 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/sevlyar/go-daemon"
 	"io/ioutil"
+	"log"
+	"math/rand"
 	"net/http"
 	"os"
+	"time"
 )
 
 type NotionRequestParent struct {
@@ -64,6 +68,46 @@ func createRequest(databaseId string) string {
 }
 
 func main() {
+	cntxt := &daemon.Context{
+		PidFileName: "sample.pid",
+		PidFilePerm: 0644,
+		LogFileName: "sample.log",
+		LogFilePerm: 0640,
+		WorkDir:     "./",
+		Umask:       027,
+		Args:        os.Args,
+	}
+
+	d, err := cntxt.Reborn()
+	if err != nil {
+		log.Fatal("Unable to run: ", err)
+	}
+	if d != nil {
+		return
+	}
+	defer cntxt.Release()
+
+	log.Print("- - - - - - - - - - - - - - -")
+	log.Print("daemon started")
+
+	startNotionCron()
+}
+
+func startNotionCron() {
+	for {
+		Nsecs := rand.Intn(3000)
+		time.Sleep(time.Millisecond * time.Duration(Nsecs))
+		t := time.Now()
+
+		if t.Second() == 00 {
+			log.Print("EXECUTED!!!!")
+			sendNotionAPI()
+		}
+	}
+}
+
+func sendNotionAPI() {
+
 	if len(os.Args) != 3 {
 		fmt.Print("USAGE : API_KEY\n")
 		return
@@ -90,24 +134,4 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("%s\n", string(data))
-
-	//HTTP
-
-	/*
-	resp, err := http.Get("https://google.com")
-
-	if err != nil {
-		panic(err)
-	}
-
-	defer resp.Body.Close() // 함수가 끝날 떄 불림. 우와. 짱 신기하다.
-
-	// 결과 출력
-	_, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
-	//fmt.Printf("%s\n", string(data))
-	*/
-
 }
