@@ -1,14 +1,4 @@
 [
-  {
-    "properties":
-    {
-      "title": "JSON TEST",
-      "date": {
-        "start": "2021-12-01"
-      }
-    },
-
-    "text":"안녕하세요 이건 JSON 테스트에오"
-  }
-
+  { "title": "TEST1", "text": { "idx": 1, "text": "이거 테스트에오", "link": "https://google.com" }  },
+  { "title": "TEST2", "text": { "idx": 1, "text": "이거 테스트에오", "link": "https://google.com" }  }
 ]

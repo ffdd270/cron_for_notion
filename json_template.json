@@ -1,0 +1,47 @@
+{
+  "properties":
+  {
+    "title": {
+      "type": "title",
+      "text": "TEAMPLTE_TITLE"
+    },
+
+    "일한 시간": {
+      "type": "date",
+      "start": "2021-12-01"
+    },
+
+    "우선순위": {
+      "type": "select",
+      "name": "READY TO FIRE"
+    },
+
+    "Work": {
+      "type": "select",
+      "name": "Wait"
+    }
+  },
+  "text":
+  [
+    {
+      "type": "h1",
+      "text": "이슈 페이지"
+    },
+    {
+      "type": "text",
+      "text": [ {"text": "", "link": ""} ]
+    },
+    {
+      "type": "h1",
+      "text": "개발 문서"
+    },
+    {
+      "type": "h1",
+      "text": "GIT HASH"
+    },
+    {
+      "type": "h1",
+      "text": "구현 사항"
+    }
+  ]
+}
