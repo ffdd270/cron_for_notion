@@ -175,6 +175,12 @@ func createRequest(databaseId string) string {
 }
 
 func main() {
+	getYouTrackRequests()
+
+	if (true) {
+		return
+	}
+
 	if len(os.Args) != 4 {
 		fmt.Print("USAGE : command API_KEY DATABASE_ID\n")
 		return
