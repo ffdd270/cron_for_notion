@@ -175,15 +175,17 @@ func createRequest(databaseId string) string {
 }
 
 func main() {
-	getYouTrackRequests()
-
-	if (true) {
+	if len(os.Args) != 4 && (os.Args[1] == "create" || os.Args[1] == "retrieve") {
+		fmt.Print("USAGE : command API_KEY DATABASE_ID\n")
 		return
 	}
 
-	if len(os.Args) != 4 {
-		fmt.Print("USAGE : command API_KEY DATABASE_ID\n")
-		return
+	if os.Args[1] == "youtrack_cron" {
+		currentVersionId := requestCurrentYoutrackVersion( os.Args[2] )
+		currentProjectId := requestShortNameToYoutrackId( os.Args[2], "TW" )
+		youtrackRequest := getYouTrackRequests()
+
+		requestCreateAnIssue( os.Args[2], currentProjectId, currentVersionId, youtrackRequest[0].Summary )
 	}
 
 	if os.Args[1] == "create" {
