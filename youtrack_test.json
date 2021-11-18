@@ -3,10 +3,7 @@
     "project": "TW",
     "summary": "2021년 %M월 %WM주차 주간 보고서 작성",
     "property": {
-      "목표 버전": "%CURRENT_WEEK_VERSION",
-      "담당자": "ffdd270",
-      "유형": "기능",
-      "우선순위": "READY TO FIRE"
+      "목표 버전": [ "%CURRENT_WEEK_VERSION", "SingleVersionIssueCustomField" ]
     },
     "cron": {
       "day_of_week": 5,

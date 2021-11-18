@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -14,7 +15,7 @@ type JSONYoutrackRequestCron struct {
 	Hour int `json:"hour"`
 }
 
-type JSONYoutrackRequestProperty  map[string]string // String - String
+type JSONYoutrackRequestProperty  map[string][]string // String - String
 
 type JSONYoutrackRequest struct {
 	Project string
@@ -56,9 +57,19 @@ func (p ParserWeekOfMonth) replace(testStr string) string {
 	return strings.Replace( testStr, "%WM", p.ReplaceWeekMonth, -1 )
 }
 
+type ParserCurrentWeekVersion struct {
+	ReplaceValue string
+}
+func (p ParserCurrentWeekVersion) valid(testStr string) bool {
+	return strings.Contains( testStr, "%CURRENT_WEEK_VERSION" )
+}
 
-func parsingYouTrackRequest( request * JSONYoutrackRequest ) {
-	parsers := make([]Parser, 2)
+func (p ParserCurrentWeekVersion) replace(testStr string) string {
+	return strings.Replace( testStr, "%CURRENT_WEEK_VERSION", p.ReplaceValue, -1 )
+}
+
+func parsingYouTrackRequest( request * JSONYoutrackRequest, targetVersionId string ) {
+	parsers := make([]Parser, 3)
 
 	parserMonth := new(ParserMonth)
 	parserMonth.ReplaceMonth = "11"
@@ -68,8 +79,14 @@ func parsingYouTrackRequest( request * JSONYoutrackRequest ) {
 	parserWeekOfMonth.ReplaceWeekMonth = "3"
 	parsers[1] = parserWeekOfMonth
 
+	parserCurrentWeekVersion := new(ParserCurrentWeekVersion)
+	parserCurrentWeekVersion.ReplaceValue = targetVersionId
+	parsers[2] = parserCurrentWeekVersion
+
+
 	// 파싱 대상. Porperty 와 summary.
 
+	request.Project = requestShortNameToYoutrackId( os.Args[2], request.Project )
 
 	for _, parser := range parsers {
 		if parser.valid(request.Summary) {
@@ -84,8 +101,8 @@ func parsingYouTrackRequest( request * JSONYoutrackRequest ) {
 		destStr := value
 
 		for _, parser := range parsers {
-			if parser.valid(destStr) {
-				destStr = parser.replace(destStr)
+			if parser.valid(destStr[0]) {
+				destStr[0] = parser.replace(destStr[0])
 			}
 		}
 
@@ -93,13 +110,13 @@ func parsingYouTrackRequest( request * JSONYoutrackRequest ) {
 	}
 }
 
-func getYouTrackRequests() []JSONYoutrackRequest {
+func getYouTrackRequests(targetVersionId string) []JSONYoutrackRequest {
 	byteValue, _ := getByteValue("youtrack_test.json")
 	var infos []JSONYoutrackRequest
 	json.Unmarshal( byteValue, &infos )
 
 	for key, info := range infos {
-		parsingYouTrackRequest(&info)
+		parsingYouTrackRequest(&info, targetVersionId)
 		infos[key] = info
 	}
 
@@ -184,8 +201,63 @@ func requestShortNameToYoutrackId( youtrackApiKey string, projectName string ) s
 	return ""
 }
 
-func requestCreateAnIssue( youtrackApiKey string, projectId string, targetVersionId string, summary string ) {
-	print("youtrackApiKey?", youtrackApiKey, "\tprojectId", projectId, "\ttargetVersionId", targetVersionId, "\tsummary", summary)
+type YoutrackCustomFieldVersionBundle struct {
+	Id string `json:"id"`
+	Type  string `json:"Type"`
+}
+
+func makeVersionBundle( versionId string ) YoutrackCustomFieldVersionBundle {
+	return YoutrackCustomFieldVersionBundle{ versionId, "VersionBundleElement" }
+}
+
+type YoutrackCustomFieldRequest struct {
+	Name string `json:"name"`
+	Value interface{} `json:"value"`
+	Type string `json:"$type"`
+}
+
+func makeSingleIssueCustomField( name string, versionId string ) YoutrackCustomFieldRequest {
+	value := makeVersionBundle(versionId)
+
+	return YoutrackCustomFieldRequest{ name, value, "SingleVersionIssueCustomField" }
+
+}
+
+type YoutrackIssueRequest struct {
+	Project struct{ Id string `json:"id"` } `json:"project"`
+	Summary string `json:"summary"`
+	Description string `json:"description"`
+	CustomFields []interface{} `json:"customFields"`
+}
+
+
+
+func requestCreateAnIssue( youtrackApiKey string, jsonYoutrackRequest JSONYoutrackRequest ) {
+	var request YoutrackIssueRequest
+
+	request.Project.Id = jsonYoutrackRequest.Project
+	request.Summary = jsonYoutrackRequest.Summary
+	request.Description = ""
+
+	for propertyKey, property := range jsonYoutrackRequest.Property {
+		valueString := property[0]
+		typeString := property[1]
+
+		if typeString == "SingleVersionIssueCustomField" {
+			request.CustomFields = append( request.CustomFields, makeSingleIssueCustomField( propertyKey, valueString  ) )
+		}
+	}
+
+
+	doc, _ := json.Marshal(request)
+	result := string(doc)
+
+	response := requestPOSTToYoutrack( "issues", youtrackApiKey, result )
+
+	print(result)
+	print(string(response))
+
+	//print("youtrackApiKey?", youtrackApiKey, "\tprojectId", projectId, "\ttargetVersionId", targetVersionId, "\tsummary", summary)
 }
 
 
