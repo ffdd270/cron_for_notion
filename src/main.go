@@ -182,7 +182,7 @@ func main() {
 
 	if os.Args[1] == "youtrack_cron" {
 		currentVersionId := requestCurrentYoutrackVersion( os.Args[2] )
-		youtrackRequest := getYouTrackRequests(currentVersionId)
+		youtrackRequest := getYouTrackRequests(os.Args[2], currentVersionId)
 
 		requestCreateAnIssue( os.Args[2], youtrackRequest[0] )
 	}

@@ -1,9 +1,11 @@
 [
   {
-    "project": "TW",
+    "project": "WRITING",
     "summary": "2021년 %M월 %WM주차 주간 보고서 작성",
     "property": {
-      "목표 버전": [ "%CURRENT_WEEK_VERSION", "SingleVersionIssueCustomField" ]
+      "목표 버전": [ "%CURRENT_WEEK_VERSION", "SingleVersionIssueCustomField" ],
+      "담당자": [ "ffdd270", "SingleUserIssueCustomField" ],
+      "유형": [ "기능", "SingleEnumIssueCustomField" ]
     },
     "cron": {
       "day_of_week": 5,
